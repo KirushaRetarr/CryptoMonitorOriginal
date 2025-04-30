@@ -1,0 +1,223 @@
+@page "/admin/dashboard"
+@layout AdminLayout
+@using CryptoMonitor.Data
+@using CryptoMonitor.Models
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
+@inject CryptoMonitorDbContext Db
+@inject IJSRuntime JSRuntime
+
+<style>
+    .dashboard-cards {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+    .dashboard-card-anim {
+        position: relative;
+        width: 340px;
+        height: 180px;
+        transition: 200ms;
+        margin-bottom: 1.5rem;
+    }
+    .dashboard-card-anim .canvas {
+        perspective: 800px;
+        inset: 0;
+        z-index: 200;
+        position: absolute;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        width: 100%;
+        height: 100%;
+    }
+    .dashboard-card-anim .tracker {
+        position: absolute;
+        z-index: 200;
+        width: 100%;
+        height: 100%;
+    }
+    .dashboard-card-anim #card {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 20px;
+        transition: 700ms;
+        background: linear-gradient(43deg, var(--accent-3) 0%, var(--accent-2) 46%, var(--accent-1) 100%);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        overflow: hidden;
+    }
+    .dashboard-card-anim .icon {
+        font-size: 2.5rem;
+        color: #fff;
+        margin-bottom: 0.5rem;
+        z-index: 2;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .dashboard-card-anim .value {
+        font-size: 2.6rem;
+        font-weight: 700;
+        color: #fff;
+        z-index: 2;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .dashboard-card-anim .label {
+        font-size: 1.2rem;
+        color: #fff;
+        opacity: 0.85;
+        z-index: 2;
+        text-align: center;
+    }
+    .dashboard-card-anim #prompt {
+        bottom: 12px;
+        left: 18px;
+        z-index: 20;
+        font-size: 16px;
+        font-weight: bold;
+        transition: 300ms ease-in-out-out;
+        position: absolute;
+        max-width: 110px;
+        color: rgb(255, 255, 255);
+    }
+    .dashboard-card-anim .tracker:hover ~ #card #prompt {
+        opacity: 0;
+    }
+    .dashboard-card-anim .tracker:hover ~ #card {
+        transition: 300ms;
+        filter: brightness(1.1);
+    }
+    .dashboard-card-anim .tracker:hover ~ #card .title {
+        opacity: 1;
+    }
+    .dashboard-card-anim .title {
+        opacity: 0;
+        transition-duration: 300ms;
+        transition-timing-function: ease-in-out-out;
+        transition-delay: 100ms;
+        position: absolute;
+        font-size: x-large;
+        font-weight: bold;
+        color: white;
+        top: 20px;
+        left: 20px;
+    }
+    /* 3D эффекты по зонам */
+    .dashboard-card-anim .tr-1:hover ~ #card { transform: rotateX(20deg) rotateY(-10deg); }
+    .dashboard-card-anim .tr-2:hover ~ #card { transform: rotateX(20deg) rotateY(-5deg); }
+    .dashboard-card-anim .tr-3:hover ~ #card { transform: rotateX(20deg) rotateY(0deg); }
+    .dashboard-card-anim .tr-4:hover ~ #card { transform: rotateX(20deg) rotateY(5deg); }
+    .dashboard-card-anim .tr-5:hover ~ #card { transform: rotateX(20deg) rotateY(10deg); }
+    .dashboard-card-anim .tr-6:hover ~ #card { transform: rotateX(10deg) rotateY(-10deg); }
+    .dashboard-card-anim .tr-7:hover ~ #card { transform: rotateX(10deg) rotateY(-5deg); }
+    .dashboard-card-anim .tr-8:hover ~ #card { transform: rotateX(10deg) rotateY(0deg); }
+    .dashboard-card-anim .tr-9:hover ~ #card { transform: rotateX(10deg) rotateY(5deg); }
+    .dashboard-card-anim .tr-10:hover ~ #card { transform: rotateX(10deg) rotateY(10deg); }
+    .dashboard-card-anim .tr-11:hover ~ #card { transform: rotateX(0deg) rotateY(-10deg); }
+    .dashboard-card-anim .tr-12:hover ~ #card { transform: rotateX(0deg) rotateY(-5deg); }
+    .dashboard-card-anim .tr-13:hover ~ #card { transform: rotateX(0deg) rotateY(0deg); }
+    .dashboard-card-anim .tr-14:hover ~ #card { transform: rotateX(0deg) rotateY(5deg); }
+    .dashboard-card-anim .tr-15:hover ~ #card { transform: rotateX(0deg) rotateY(10deg); }
+    .dashboard-card-anim .tr-16:hover ~ #card { transform: rotateX(-10deg) rotateY(-10deg); }
+    .dashboard-card-anim .tr-17:hover ~ #card { transform: rotateX(-10deg) rotateY(-5deg); }
+    .dashboard-card-anim .tr-18:hover ~ #card { transform: rotateX(-10deg) rotateY(0deg); }
+    .dashboard-card-anim .tr-19:hover ~ #card { transform: rotateX(-10deg) rotateY(5deg); }
+    .dashboard-card-anim .tr-20:hover ~ #card { transform: rotateX(-10deg) rotateY(10deg); }
+    .dashboard-card-anim .tr-21:hover ~ #card { transform: rotateX(-20deg) rotateY(-10deg); }
+    .dashboard-card-anim .tr-22:hover ~ #card { transform: rotateX(-20deg) rotateY(-5deg); }
+    .dashboard-card-anim .tr-23:hover ~ #card { transform: rotateX(-20deg) rotateY(0deg); }
+    .dashboard-card-anim .tr-24:hover ~ #card { transform: rotateX(-20deg) rotateY(5deg); }
+    .dashboard-card-anim .tr-25:hover ~ #card { transform: rotateX(-20deg) rotateY(10deg); }
+    .noselect {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+</style>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else
+{
+    <div class="dashboard-cards noselect">
+        @foreach (var card in GetCards())
+        {
+            <div class="dashboard-card-anim">
+                <div class="canvas">
+                    @for (int i = 1; i <= 25; i++)
+                    {
+                        <div class="tracker tr-@i"></div>
+                    }
+                    <div id="card">
+                        <span class="icon"><i class="@card.Icon"></i></span>
+                        <span class="value">@card.Value</span>
+                        <span class="label">@card.Label</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="dashboard-graph">
+        <canvas id="regChart" width="600" height="260" style="max-width:100%" @ref="chartRef"></canvas>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private int totalUsers;
+    private int usersLast24h;
+    private int usersLast7d;
+    private List<string> regDays = new();
+    private List<int> regCounts = new();
+    private IJSObjectReference chartModule;
+    private ElementReference chartRef;
+
+    private class CardInfo
+    {
+        public string Icon { get; set; }
+        public string Label { get; set; }
+        public int Value { get; set; }
+    }
+    private List<CardInfo> GetCards() => new()
+    {
+        new CardInfo { Icon = "fas fa-users", Label = "Всего пользователей", Value = totalUsers },
+        new CardInfo { Icon = "fas fa-user-plus", Label = "Зарегистрировались за 24ч", Value = usersLast24h },
+        new CardInfo { Icon = "fas fa-calendar-week", Label = "Зарегистрировались за 7 дней", Value = usersLast7d }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var now = DateTime.UtcNow;
+        var users = await Db.Users.ToListAsync();
+        totalUsers = users.Count;
+        usersLast24h = users.Count(u => u.RegisteredAt > now.AddDays(-1));
+        usersLast7d = users.Count(u => u.RegisteredAt > now.AddDays(-7));
+        regDays = Enumerable.Range(0, 7)
+            .Select(i => now.AddDays(-6 + i).ToString("dd.MM"))
+            .ToList();
+        regCounts = Enumerable.Range(0, 7)
+            .Select(i => users.Count(u => u.RegisteredAt.Date == now.Date.AddDays(-6 + i)))
+            .ToList();
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!isLoading)
+        {
+            if (chartModule == null)
+                chartModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chart.js");
+            await chartModule.InvokeVoidAsync("destroyChart", chartRef);
+            await chartModule.InvokeVoidAsync("initializeChart", chartRef, regCounts, regDays, "Регистрации за 7 дней");
+        }
+    }
+} 

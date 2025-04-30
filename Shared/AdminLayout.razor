@@ -1,0 +1,82 @@
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<style>
+    .admin-root {
+        display: flex;
+        min-height: 100vh;
+        background: var(--bg-dark);
+    }
+    .admin-nav {
+        width: 260px;
+        background: var(--bg-light);
+        box-shadow: 2px 0 16px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 1rem;
+        gap: 1.5rem;
+        border-radius: 0 30px 30px 0;
+        animation: slideInLeft 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .admin-nav .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.2rem;
+        border-radius: 12px;
+        color: var(--text-main);
+        font-size: 1.15rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, transform 0.2s;
+        position: relative;
+    }
+    .admin-nav .nav-item.selected, .admin-nav .nav-item:hover {
+        background: var(--accent-3);
+        color: #fff;
+        transform: translateX(6px) scale(1.04);
+        box-shadow: 0 2px 12px rgba(0,255,163,0.08);
+    }
+    .admin-content {
+        flex: 1;
+        padding: 2.5rem 3rem;
+        animation: fadeIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    @@keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-60px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<div class="admin-root">
+    <nav class="admin-nav">
+        <div class="nav-item @(IsSelected("dashboard") ? "selected" : "")" @onclick='@(() => NavigateTo("/admin/dashboard"))'>
+            <i class="fas fa-tachometer-alt"></i> Дэшборд
+        </div>
+        <div class="nav-item @(IsSelected("control") ? "selected" : "")" @onclick='@(() => NavigateTo("/admin/control"))'>
+            <i class="fas fa-users"></i> Управление
+        </div>
+        <div class="nav-item" @onclick='@(() => NavigationManager.NavigateTo("/"))'>
+            <i class="fas fa-home"></i> Вернуться на сайт
+        </div>
+    </nav>
+    <section class="admin-content">
+        @Body
+    </section>
+</div>
+
+@code {
+    private bool IsSelected(string tab)
+    {
+        var uri = NavigationManager.Uri.ToLower();
+        return uri.Contains($"/admin/{tab}");
+    }
+    private void NavigateTo(string url)
+    {
+        NavigationManager.NavigateTo(url);
+    }
+} 

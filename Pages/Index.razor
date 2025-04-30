@@ -1,0 +1,322 @@
+﻿@page "/"
+
+@using CryptoMonitor.Data
+@using CryptoMonitor.Models
+@using CryptoMonitor.Pages
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject CryptoMonitorDbContext Db
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+
+<style>
+    .compare-cards-custom {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        justify-content: flex-start;
+    }
+
+    .parent {
+        width: 300px;
+        padding: 20px;
+        perspective: 1000px;
+    }
+
+    .card-compare {
+        position: relative;
+        padding-top: 50px;
+        border: 3px solid var(--bg-light);
+        background: linear-gradient(135deg,#0000 18.75%,var(--bg-light) 0 31.25%,#0000 0), repeating-linear-gradient(45deg,var(--bg-light) -6.25% 6.25%, var(--text-main) 0 18.75%);
+        background-size: 60px 60px;
+        background-position: 0 0, 0 0;
+        background-color: var(--bg-light);
+        width: 100%;
+        box-shadow: rgba(142, 142, 142, 0.15) 0px 20px 20px -10px;
+        transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+        border-radius: 18px;
+    }
+
+        .card-compare:hover {
+            background-position: -100px 100px, -100px 100px;
+            transform: rotate3d(0.5, 1, 0, 18deg) scale(1.03);
+            box-shadow: 0 8px 32px rgba(0,255,163,0.10);
+        }
+
+    .content-box {
+        background: var(--accent-3);
+        border-radius: 18px 80px 18px 18px;
+        transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+        padding: 60px 25px 25px 25px;
+        transform-style: preserve-3d;
+        min-height: 120px;
+    }
+
+        .content-box .card-title {
+            display: inline-block;
+            color: white;
+            font-size: 25px;
+            font-weight: 900;
+            transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+            transform: translate3d(0px, 0px, 50px);
+        }
+
+        .content-box .card-content {
+            margin-top: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #f2f2f2;
+            transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+            transform: translate3d(0px, 0px, 30px);
+        }
+
+        .content-box .see-more {
+            cursor: pointer;
+            margin-top: 1rem;
+            display: inline-block;
+            font-weight: 900;
+            font-size: 11px;
+            text-transform: uppercase;
+            background: white;
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+            transform: translate3d(0px, 0px, 20px);
+        }
+
+    .date-box {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        height: 60px;
+        width: 60px;
+        background: var(--bg-light);
+        border: 1px solid var(--accent-3);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: rgba(100, 100, 111, 0.12) 0px 10px 10px -10px;
+    }
+</style>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else
+{
+    <main class="index-main">
+
+        <!-- Блок: БОЛЬШОЙ БАННЕР -->
+        <Animate Animation="Animations.SlideUp" Duration="TimeSpan.FromSeconds(1)">
+            <section class="hero-banner">
+                <video class="hero-video-bg" autoplay loop muted playsinline preload="auto" tabindex="-1">
+                    <source src="video/hero-banner.mp4" type="video/mp4" />
+                    Ваш браузер не поддерживает видео.
+                </video>
+                <div class="hero-content">
+                    <h1>
+                        <span class="hero-title-accent">CryptoMonitor</span> — ваш гид в мире криптовалют
+                    </h1>
+                    <p class="hero-subtitle">
+                        Следите за курсами, анализируйте тренды и принимайте решения <span class="hero-sub-accent">быстрее</span> и <span class="hero-sub-accent">умнее</span>.<br/>
+                        <span class="hero-highlight">Топовые монеты, графики, сравнения и многое другое — всё в одном месте!</span>
+                    </p>
+                    <button class="btn-anim hero-btn" @onclick="GoToAssets" style="position: relative;">
+                        <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                        Начать
+                    </button>
+                </div>
+            </section>
+        </Animate>
+
+        <!-- Блок: Сравнения текущих и исторических данных. -->
+        <Animate Animation="Animations.SlideUp" Duration="TimeSpan.FromSeconds(1)" Delay="TimeSpan.FromSeconds(0.5)">
+            <section class="compare-section">
+                <h2>Сравнение: сейчас и 24ч назад</h2>
+                <div class="compare-cards-custom">
+                    @foreach (var item in comparisonData)
+                    {
+                        var diffColor = item.Diff > 0 ? "var(--accent-1)" : item.Diff < 0 ? "var(--accent-2)" : "#07b9ff";
+                        <div class="parent">
+                            <div class="card-compare">
+                                <div class="content-box">
+                                    <span class="card-title">@item.Name</span>
+                                    <p class="card-content">@item.CurrentPrice.ToString("N2") $</p>
+                                    <span class="see-more" style="color:@diffColor; border: 1.5px solid @diffColor;">
+                                        @(item.Diff > 0 ? "+" : item.Diff < 0 ? "" : "")@item.Diff.ToString("N2") $ (@(item.DiffPct > 0 ? "+" : "")@item.DiffPct.ToString("N2")%)
+                                    </span>
+                                </div>
+                                <div class="date-box" style="display: flex; align-items: center; justify-content: center; padding: 0; background: var(--bg-light); border: 2px solid @diffColor;">
+                                    <img src="@item.ImageUrl" alt="@item.Name" style="width: 40px; height: 40px; object-fit: contain;" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </Animate>
+
+               <!-- Блок: ТОП-5 Криптовалют -->
+        <Animate Animation="Animations.SlideUp" Duration="TimeSpan.FromSeconds(0.5)" Delay="TimeSpan.FromSeconds(0.3)">
+            <section class="top-cryptos">
+                <div class="crypto-cards">
+                    @foreach (var crypto in cryptoCards)
+                    {
+                        <div class="card" @onclick="() => ShowCryptoDetails(crypto.AssetId.ToString())">
+                            <img class="img" src="@crypto.ImageUrl" alt="@crypto.Name" />
+                            <div class="textBox">
+                                <p class="head">@crypto.Name</p>
+                                <p class="discription">Cryptocurrency</p>
+                                <p class="price">@((crypto.LatestPrice ?? 0).ToString("N2")) $</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </Animate>
+
+        <!-- Блок: Линейный график -->
+        @if (selectedCrypto != null)
+        {
+            <section class="price-chart">
+                <Animate Animation="Animations.SlideUp" Duration="TimeSpan.FromSeconds(1)">
+                    <div class="chart-container" style="position:relative;">
+                        <button class="close-chart-btn" @onclick="HideChart" aria-label="Закрыть график">
+                            <span>&times;</span>
+                        </button>
+                        <canvas id="priceChart" width="800" height="400"></canvas>
+                    </div>
+                </Animate>
+            </section>
+        }
+
+    </main>
+}
+
+@code {
+    private bool isLoading = true;
+    private List<CryptoCardModel> cryptoCards;
+    private CryptoCardModel selectedCrypto;
+    private IJSObjectReference chartModule;
+    private bool isChartInitialized = false;
+    private List<ComparisonModel> comparisonData = new();
+
+    public class ComparisonModel
+    {
+        public string Name { get; set; }
+        public string ImageUrl { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public decimal OldPrice { get; set; }
+        public decimal Diff => CurrentPrice - OldPrice;
+        public decimal DiffPct => OldPrice != 0 ? (CurrentPrice - OldPrice) / OldPrice * 100 : 0;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var minDisplay = TimeSpan.FromMilliseconds(1000);      // минимальное время показа лоадера
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        // Загружаем данные для карточек криптовалют
+        cryptoCards = await Db.CryptoAssets
+            .OrderBy(a => a.AssetId)
+            .Take(5)
+            .Select(a => new CryptoCardModel
+                {
+                    AssetId = a.AssetId,
+                    Name = a.Name,
+                    ImageUrl = a.ImageUrl,
+                    LatestPrice = a.PriceHistories
+                        .OrderByDescending(p => p.Timestamp)
+                        .Select(p => p.PriceUsd)
+                        .FirstOrDefault()
+                })
+            .ToListAsync();
+
+        // Сравнение: текущая цена и цена 24ч назад
+        var now = DateTime.UtcNow;
+        comparisonData = await Db.CryptoAssets
+            .OrderBy(a => a.AssetId)
+            .Take(5)
+            .Select(a => new ComparisonModel
+            {
+                Name = a.Name,
+                ImageUrl = a.ImageUrl,
+                CurrentPrice = a.PriceHistories
+                    .OrderByDescending(p => p.Timestamp)
+                    .Select(p => p.PriceUsd)
+                    .FirstOrDefault(),
+                OldPrice = a.PriceHistories
+                    .Where(p => p.Timestamp <= now.AddHours(-24))
+                    .OrderByDescending(p => p.Timestamp)
+                    .Select(p => p.PriceUsd)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        // досыпаем, если прошло меньше, чем minDisplay
+        var remaining = minDisplay - sw.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining);
+
+        isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            chartModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chart.js");
+        }
+    }
+
+    private async Task ShowCryptoDetails(string assetId)
+    {
+        selectedCrypto = cryptoCards.FirstOrDefault(c => c.AssetId.ToString() == assetId);
+        if (selectedCrypto != null)
+        {
+            var priceHistory = await Db.PriceHistories
+                .Where(p => p.AssetId.ToString() == assetId)
+                .OrderBy(p => p.Timestamp)
+                .Select(p => new { p.Timestamp, p.PriceUsd })
+                .ToListAsync();
+
+            var labels = priceHistory.Select(p => p.Timestamp.ToString("MM/dd")).ToList();
+            var data = priceHistory.Select(p => Convert.ToDouble(p.PriceUsd)).ToList();
+
+            if (!isChartInitialized)
+            {
+                await chartModule.InvokeVoidAsync("initializeChart", "priceChart");
+                isChartInitialized = true;
+            }
+
+            await chartModule.InvokeVoidAsync("updateChart", data, labels, $"{selectedCrypto.Name} Price History");
+        }
+    }
+
+    private void HideChart()
+    {
+        selectedCrypto = null;
+        isChartInitialized = false;
+        if (chartModule != null)
+        {
+            chartModule.InvokeVoidAsync("destroyChart");
+        }
+    }
+
+    private async Task GoToAssets()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            NavigationManager.NavigateTo("/assets");
+        else
+            NavigationManager.NavigateTo("/login");
+    }
+}

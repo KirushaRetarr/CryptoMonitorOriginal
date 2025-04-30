@@ -1,0 +1,501 @@
+﻿@page "/profile"
+@using Microsoft.AspNetCore.Components
+@using CryptoMonitor.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using CryptoMonitor.Models
+@using System.Security.Claims
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<style>
+    .profile-container {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: var(--bg-dark);
+        padding: 2rem;
+    }
+
+    .profile-card {
+        background: var(--bg-light);
+        border-radius: 30px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, .2);
+        width: 100%;
+        max-width: 800px;
+        padding: 2rem;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .profile-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .avatar-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--accent-3);
+        transition: transform 0.3s ease;
+    }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--accent-3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3rem;
+        color: var(--text-main);
+    }
+
+    .profile-info {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .info-item {
+        margin-bottom: 1.5rem;
+        animation: slideIn 0.5s ease-in-out;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.2rem;
+        color: var(--text-main);
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid var(--text-main);
+        transition: background 0.3s ease;
+    }
+
+        .info-value:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+    .edit-button {
+        margin-top: 2rem;
+        padding: 0.8rem 2rem;
+        background: var(--accent-3);
+        color: var(--text-main);
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+        .edit-button:hover {
+            transform: translateY(-2px);
+            background: var(--accent-2);
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@media screen and (max-width: 768px) {
+        .profile-card {
+            padding: 1.5rem;
+        }
+
+        .avatar-container {
+            width: 120px;
+            height: 120px;
+        }
+    }
+
+    .password-form {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        animation: fadeIn 0.5s ease-in-out;
+        box-shadow: 0 8px 8px var(--bg-dark, #00FFA3);
+        border: 1px solid var(--text-main)
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        position: relative;
+        color: var(--text-main);
+    }
+
+    .form-group .label {
+        font-size: 15px;
+        padding-left: 10px;
+        position: absolute;
+        top: 13px;
+        left: 0;
+        transition: 0.3s;
+        pointer-events: none;
+        color: var(--text-secondary);
+        background: transparent;
+    }
+
+    .form-group .input {
+        width: 100%;
+        height: 45px;
+        border: none;
+        outline: none;
+        padding: 0px 7px;
+        border-radius: 6px;
+        color: var(--text-main);
+        font-size: 15px;
+        background-color: transparent;
+        box-shadow: 0 2px 8px var(--accent-1, #00FFA3);
+        transition: box-shadow 0.3s, color 0.3s;
+    }
+
+    .form-group .input:focus {
+        border: 2px solid var(--accent-1, #00FFA3);
+        color: var(--text-main);
+        box-shadow: 0 4px 16px var(--accent-1, #00FFA3);
+    }
+
+    .form-group.filled .label,
+    .form-group.focused .label {
+        transition: 0.3s;
+        padding-left: 2px;
+        transform: translateY(-35px);
+        color: var(--accent-1, #00FFA3);
+        font-size: 13px;
+    }
+
+    .error-message {
+        color: #ff4444;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .success-message {
+        color: #00C851;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    .change-password-button {
+        margin-top: 1rem;
+        padding: 0.8rem 2rem;
+        background: var(--accent-3);
+        color: var(--text-main);
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s ease, background 0.3s ease;
+        width: 100%;
+    }
+
+        .change-password-button:hover {
+            transform: translateY(-2px);
+            background: var(--accent-2);
+        }
+
+        .change-password-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+    /* From Uiverse.io by AbanoubMagdy1 */
+    .wave-group {
+        position: relative;
+    }
+
+        .wave-group .input {
+            font-size: 16px;
+            padding: 10px 10px 10px 5px;
+            display: block;
+            width: 200px;
+            border: none;
+            border-bottom: 1px solid #515151;
+            background: transparent;
+        }
+
+            .wave-group .input:focus {
+                outline: none;
+            }
+
+        .wave-group .label {
+            color: #999;
+            font-size: 18px;
+            font-weight: normal;
+            position: absolute;
+            pointer-events: none;
+            left: 5px;
+            top: 10px;
+            display: flex;
+        }
+
+        .wave-group .label-char {
+            transition: 0.2s ease all;
+            transition-delay: calc(var(--index) * .05s);
+        }
+
+        .wave-group .input:focus ~ label .label-char,
+        .wave-group .input:valid ~ label .label-char {
+            transform: translateY(-20px);
+            font-size: 14px;
+            color: var(--accent-1);
+        }
+
+        .wave-group .bar {
+            position: relative;
+            display: block;
+            width: 200px;
+        }
+
+            .wave-group .bar:before, .wave-group .bar:after {
+                content: '';
+                height: 2px;
+                width: 0;
+                bottom: 1px;
+                position: absolute;
+                background: var(--accent-1);
+                transition: 0.2s ease all;
+                -moz-transition: 0.2s ease all;
+                -webkit-transition: 0.2s ease all;
+            }
+
+            .wave-group .bar:before {
+                left: 50%;
+            }
+
+            .wave-group .bar:after {
+                right: 50%;
+            }
+
+        .wave-group .input:focus ~ .bar:before,
+        .wave-group .input:focus ~ .bar:after {
+            width: 50%;
+        }
+</style>
+
+@if (isLoadingProfile)
+{
+    <Loading />
+}
+else
+{
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    @if (userAvatar != null)
+                    {
+                        <img src="@userAvatar" alt="Profile Avatar" class="avatar" />
+                    }
+                    else
+                    {
+                        <div class="avatar-placeholder">
+                            @(userEmail?.Substring(0, 1).ToUpper() ?? "U")
+                        </div>
+                    }
+                </div>
+                <h2>@(userEmail?.Split('@')[0] ?? "User")</h2>
+            </div>
+
+            <div class="profile-info">
+                <div class="info-item" style="animation-delay: 0.1s">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@userEmail</div>
+                </div>
+
+                <div class="info-item" style="animation-delay: 0.2s">
+                    <div class="info-label">Account Type</div>
+                    <div class="info-value">@(isPremium ? "Premium" : "Standard")</div>
+                </div>
+
+                <div class="info-item" style="animation-delay: 0.3s">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">@memberSince</div>
+                </div>
+
+                @if (isAdmin)
+                {
+                    <div class="info-item" style="animation-delay: 0.3s">
+                        <div class="info-label">Role</div>
+                        <div class="info-value">@userRole</div>
+                    </div>
+
+                    <div class="info-item" style="animation-delay: 0.4s">
+                        <a href="/admin/dashboard" class="btn-anim" style="width: 200px; display: flex; align-items: center; justify-content: center; position: relative;">
+                            <svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0;"><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            <span style="position: relative; z-index: 1; width: 100%; text-align: center;">Админ-панель</span>
+                        </a>
+                    </div>
+                }
+
+                <div class="password-form">
+                    <h3 style="margin-bottom: 30px; margin-left: 4px">Change Password</h3>
+                    <EditForm Model="@changePasswordModel" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <div class="form-group @(isCurrentFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.CurrentPassword) ? "filled" : null )">
+                            <InputText @bind-Value="changePasswordModel.CurrentPassword" class="input" type="password" required
+                                @onfocus="() => isCurrentFocused = true" @onblur="() => isCurrentFocused = false" />
+                            <label class="label">Текущий пароль</label>
+                            <ValidationMessage For="@(() => changePasswordModel.CurrentPassword)" />
+                        </div>
+
+                        <div class="form-group @(isNewFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.NewPassword) ? "filled" : null )">
+                            <InputText @bind-Value="changePasswordModel.NewPassword" class="input" type="password" required
+                                @onfocus="() => isNewFocused = true" @onblur="() => isNewFocused = false" />
+                            <label class="label">Новый пароль</label>
+                            <ValidationMessage For="@(() => changePasswordModel.NewPassword)" />
+                        </div>
+
+                        <div class="form-group @(isConfirmFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.ConfirmPassword) ? "filled" : null )">
+                            <InputText @bind-Value="changePasswordModel.ConfirmPassword" class="input" type="password" required
+                                @onfocus="() => isConfirmFocused = true" @onblur="() => isConfirmFocused = false" />
+                            <label class="label">Подтвердите пароль</label>
+                            <ValidationMessage For="@(() => changePasswordModel.ConfirmPassword)" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="error-message">@errorMessage</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="success-message">@successMessage</div>
+                        }
+
+                        <button type="submit" class="btn-anim" style="width: 200px" disabled="@isLoading">
+                            <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            @if (isLoading)
+                            {
+                                <span>Изменение пароля...</span>
+                            }
+                            else
+                            {
+                                <span>Изменить пароль</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string userEmail;
+    private string userAvatar;
+    private bool isPremium;
+    private string memberSince;
+    private ChangePasswordModel changePasswordModel = new();
+    private string errorMessage;
+    private string successMessage;
+    private bool isLoading;
+    private bool isAdmin;
+    private string userRole;
+    private bool isLoadingProfile = true;
+
+    // Для анимации плавающего лейбла
+    private bool isCurrentFocused;
+    private bool isNewFocused;
+    private bool isConfirmFocused;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var minDisplay = TimeSpan.FromMilliseconds(1000);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userEmail = user.Identity.Name;
+            isAdmin = user.IsInRole("Admin");
+            userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "Unknown";
+        }
+
+        isPremium = false;
+        memberSince = DateTime.Now.ToString("MMMM yyyy");
+
+        var remaining = minDisplay - sw.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining);
+
+        isLoadingProfile = false;
+    }
+    private async Task HandleValidSubmit()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+
+            var result = await AuthService.ChangePasswordAsync(userEmail, changePasswordModel);
+            if (result)
+            {
+                successMessage = "Password changed successfully!";
+                changePasswordModel = new ChangePasswordModel();
+            }
+            else
+            {
+                errorMessage = "Current password is incorrect.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to change password. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

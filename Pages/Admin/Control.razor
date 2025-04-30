@@ -1,0 +1,186 @@
+@page "/admin/control"
+@layout AdminLayout
+@using CryptoMonitor.Data
+@using CryptoMonitor.Models
+@using Microsoft.EntityFrameworkCore
+@inject CryptoMonitorDbContext Db
+
+<style>
+    .users-table {
+        width: 100%;
+        background: var(--bg-light);
+        border-radius: 18px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        padding: 2rem;
+        margin-top: 1.5rem;
+        animation: fadeIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+    }
+    .users-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .users-table th, .users-table td {
+        padding: 0.8rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--accent-3);
+    }
+    .users-table th {
+        color: var(--accent-3);
+        font-size: 1.1rem;
+    }
+    .users-table tr:last-child td {
+        border-bottom: none;
+    }
+    .users-table .action-btn {
+        background: var(--accent-3);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 1.2rem;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .users-table .action-btn:hover {
+        background: var(--accent-2);
+        transform: translateY(-2px) scale(1.04);
+    }
+    .users-table .role-select {
+        border-radius: 6px;
+        border: 1px solid var(--accent-3);
+        padding: 0.2rem 0.7rem;
+        font-size: 1rem;
+        background: var(--bg-light);
+        color: var(--text-main);
+        margin-right: 0.5rem;
+    }
+    .users-table .role-select:focus {
+        outline: none;
+        border-color: var(--accent-2);
+    }
+    .users-table .confirm {
+        color: #fff;
+        background: #dc3545;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 1.2rem;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .users-table .confirm:hover {
+        background: #b52a37;
+        transform: translateY(-2px) scale(1.04);
+    }
+</style>
+
+<h2 style="margin-bottom: 2rem; color: var(--accent-3);">Управление пользователями</h2>
+<div class="users-table">
+    @if (isLoading)
+    {
+        <Loading />
+    }
+    else if (users.Count == 0)
+    {
+        <p style="color: var(--text-secondary);">Пользователей не найдено.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-envelope"></i> Email</th>
+                    <th><i class="fas fa-user-tag"></i> Роль</th>
+                    <th><i class="fas fa-calendar-alt"></i> Дата регистрации</th>
+                    <th><i class="fas fa-cogs"></i> Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in users)
+                {
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>
+                            <select class="role-select" @onchange="e => ChangeRole(user, e.Value.ToString())" value="@user.Role?.RoleName">
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role.RoleName">@role.RoleName</option>
+                                }
+                            </select>
+                        </td>
+                        <td>@user.RegisteredAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            @if (userToDelete == user.UserId)
+                            {
+                                <button class="confirm" @onclick="() => ConfirmDelete(user.UserId)"><i class="fas fa-check"></i> Подтвердить</button>
+                                <button class="action-btn" @onclick="() => CancelDelete()"><i class="fas fa-times"></i> Отмена</button>
+                            }
+                            else
+                            {
+                                <button class="action-btn" @onclick="() => AskDelete(user.UserId)"><i class="fas fa-trash"></i> Удалить</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<User> users = new();
+    private List<Role> roles = new();
+    private bool isLoading = true;
+    private int? userToDelete = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        users = await Db.Users.Include(u => u.Role).OrderByDescending(u => u.RegisteredAt).ToListAsync();
+        roles = await Db.Roles.ToListAsync();
+        isLoading = false;
+    }
+
+    private void AskDelete(int userId)
+    {
+        userToDelete = userId;
+    }
+    private void CancelDelete()
+    {
+        userToDelete = null;
+    }
+    private async Task ConfirmDelete(int userId)
+    {
+        var user = await Db.Users.FindAsync(userId);
+        if (user != null)
+        {
+            Db.Users.Remove(user);
+            await Db.SaveChangesAsync();
+            await LoadData();
+        }
+        userToDelete = null;
+    }
+    private async Task ChangeRole(User user, string newRoleName)
+    {
+        var role = roles.FirstOrDefault(r => r.RoleName == newRoleName);
+        if (role != null && user.RoleId != role.RoleId)
+        {
+            user.RoleId = role.RoleId;
+            await Db.SaveChangesAsync();
+            await LoadData();
+        }
+    }
+} 

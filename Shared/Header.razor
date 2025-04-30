@@ -1,0 +1,171 @@
+﻿@namespace CryptoMonitor.Shared
+@using CryptoMonitor.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@inject AuthenticationStateProvider AuthStateProvider
+
+<nav class="app-header flex items-center justify-between px-40">
+    <!-- Левый блок: логотип/аватар + название -->
+    <div class="flex items-center gap-4">
+        <a href="/" style="display: flex; align-items: center; gap: 1rem; text-decoration: none;" class="logo-link">
+            <!-- Аватар пользователя -->
+            <img src="images/logo.png"
+                 alt="User Avatar"
+                 class="w-8 h-9 logo" />
+            <!-- Логотип/название -->
+            <span class="text-logo">CryptoMonitor</span>
+        </a>
+    </div>
+
+    <!-- Правый блок -->
+    <div class="menu">
+        <a href="#" class="link">
+            <span class="link-icon">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="192"
+                     height="192"
+                     fill="#00FFA3"
+                     viewBox="0 0 256 256">
+                    <rect width="256" height="256" fill="none"></rect>
+                    <path d="M213.3815,109.61945,133.376,36.88436a8,8,0,0,0-10.76339.00036l-79.9945,72.73477A8,8,0,0,0,40,115.53855V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V115.53887A8,8,0,0,0,213.3815,109.61945Z"
+                          fill="none"
+                          stroke="#00FFA3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="16"></path>
+                </svg>
+            </span>
+            <span class="link-title">Главная</span>
+        </a>
+        @if (IsAuthenticated)
+        {
+            <a href="/assets" class="link">
+                <span class="link-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="100.000000pt" height="100.000000pt" viewBox="0 0 100.000000 100.000000" preserveAspectRatio="xMidYMid meet">
+                        <g transform="translate(0.000000,100.000000) scale(0.100000,-0.100000)" fill="#00FFA3" stroke="none" stroke-width="16">
+                            <path d="M115 976 c-37 -17 -80 -62 -94 -99 -17 -45 -15 -719 3 -760 17 -43 78 -95 118 -102 18 -3 121 -5 228 -3 173 3 195 5 198 20 3 15 -17 17 -205 20 -326 5 -308 -22 -308 448 0 311 2 348 18 377 35 65 51 68 354 68 259 0 273 -1 300 -21 49 -36 63 -78 63 -186 0 -98 8 -120 35 -98 11 9 15 35 15 94 0 134 -28 199 -100 236 -36 19 -60 20 -317 20 -210 -1 -285 -4 -308 -14z" />
+                            <path d="M166 585 c-3 -8 3 -19 14 -25 23 -12 389 -13 409 -1 8 5 11 16 8 25 -6 14 -33 16 -216 16 -175 0 -210 -2 -215 -15z" />
+                            <path d="M700 486 c0 -28 -4 -35 -25 -40 -14 -4 -25 -13 -25 -21 0 -9 11 -20 25 -25 25 -9 25 -10 25 -135 0 -125 0 -126 -25 -135 -31 -12 -33 -38 -2 -42 18 -2 23 -10 25 -41 4 -51 35 -48 42 3 4 29 10 36 33 38 24 3 27 0 27 -25 0 -37 14 -57 34 -50 10 4 16 19 16 42 0 34 1 35 41 35 52 0 99 42 99 90 0 37 -23 85 -45 94 -11 4 -14 13 -8 33 15 61 -3 104 -53 128 -29 14 -34 21 -34 50 0 28 -4 35 -19 35 -20 0 -31 -18 -31 -51 0 -14 -7 -19 -30 -19 -28 0 -30 3 -30 35 0 28 -4 35 -20 35 -16 0 -20 -7 -20 -34z m180 -106 c24 -24 25 -38 4 -68 -13 -19 -24 -22 -80 -22 l-64 0 0 55 0 55 60 0 c47 0 64 -4 80 -20z m48 -152 c7 -7 12 -24 12 -39 0 -44 -32 -59 -122 -59 l-78 0 0 55 0 55 88 0 c55 0 92 -4 100 -12z" />
+                            <path d="M178 439 c-10 -5 -15 -16 -12 -24 5 -12 37 -15 184 -15 180 0 205 5 180 35 -10 12 -44 15 -174 15 -88 0 -169 -5 -178 -11z" />
+                            <path d="M171 277 c-24 -29 11 -38 140 -35 116 3 124 4 124 23 0 19 -8 20 -126 23 -98 2 -129 0 -138 -11z" />
+                        </g>
+                    </svg>
+                </span>
+                <span class="link-title">Криптовалюта</span>
+            </a>
+            <a href="/profile" class="link">
+                <span class="link-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00FFA3" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                </span>
+                <span class="link-title">Профиль</span>
+            </a>
+            <a href="#" class="link" @onclick="Logout">
+                <span class="link-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00FFA3" viewBox="0 0 24 24"><path d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3h-8c-1.1 0-2 .9-2 2v4h2V5h8v14h-8v-4h-2v4c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                </span>
+                <span class="link-title">Выйти</span>
+            </a>
+        }
+        else
+        {
+            <a href="/login" class="link">
+                <span class="link-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="100.000000pt" height="100.000000pt" viewBox="0 0 100.000000 100.000000" preserveAspectRatio="xMidYMid meet">
+                        stroke-width="16"
+                        <g transform="translate(0.000000,100.000000) scale(0.100000,-0.100000)" fill="#00FFA3" stroke="none" stroke-width="16">
+                            <path d="M386 944 c-225 -54 -376 -286 -338 -517 52 -312 397 -481 674 -330 99 54 231 224 199 256 -10 9 -15 8 -25 -7 -83 -138 -144 -198 -246 -238 -78 -31 -222 -31 -300 0 -112 45 -197 130 -242 242 -31 78 -31 222 0 300 45 112 130 197 242 242 78 31 222 31 300 0 102 -40 163 -100 246 -238 10 -15 15 -16 25 -7 32 32 -100 202 -199 256 -101 55 -219 69 -336 41z" />
+                            <path d="M385 590 l-90 -90 92 -92 c73 -73 95 -90 105 -80 10 10 -2 27 -57 82 l-69 70 294 2 c254 3 295 5 295 18 0 13 -41 15 -295 18 l-294 2 68 69 c59 60 76 91 48 91 -4 0 -48 -41 -97 -90z" />
+                        </g>
+                    </svg>
+                </span>
+                <span class="link-title">Войти</span>
+            </a>
+            <a href="/login" class="link">
+                <span class="link-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="100.000000pt" height="100.000000pt" viewBox="0 0 100.000000 100.000000" preserveAspectRatio="xMidYMid meet">
+                        <g transform="translate(0.000000,100.000000) scale(0.100000,-0.100000)" fill="#00FFA3" stroke="none" stroke-width="16">
+                            <path d="M315 978 c-83 -29 -128 -124 -108 -228 7 -36 7 -61 0 -79 -8 -21 -6 -34 6 -57 59 -110 68 -135 65 -176 -3 -41 -5 -43 -63 -70 -160 -75 -202 -112 -212 -187 l-6 -41 253 0 c226 0 252 2 246 16 -3 9 -6 18 -6 20 0 2 -99 4 -220 4 -245 0 -246 0 -190 64 20 22 58 45 108 66 108 45 132 70 132 137 0 35 -7 63 -20 85 -11 18 -20 43 -20 56 0 12 -5 22 -10 22 -19 0 -34 48 -21 63 8 11 9 27 0 67 -27 128 27 210 140 210 46 0 133 -41 156 -73 17 -24 19 -91 5 -152 -6 -26 -5 -44 2 -52 12 -15 -4 -63 -22 -63 -5 0 -10 -10 -10 -22 0 -13 -9 -38 -20 -56 -27 -44 -28 -132 -2 -155 26 -24 31 -13 25 46 -5 52 6 84 64 191 12 22 13 37 6 55 -5 14 -6 37 -2 51 4 14 7 50 8 80 2 91 -30 132 -137 180 -29 13 -108 12 -147 -2z" />
+                            <path d="M680 467 c-49 -16 -133 -102 -148 -153 -28 -94 -8 -169 63 -239 102 -103 243 -101 338 5 90 100 90 220 0 320 -65 72 -158 97 -253 67z m190 -61 c59 -39 85 -89 85 -166 0 -78 -26 -127 -88 -168 -56 -37 -153 -39 -210 -3 -76 47 -111 140 -88 229 14 51 75 117 123 131 53 16 135 6 178 -23z" />
+                            <path d="M740 310 l0 -50 -50 0 c-43 0 -50 -3 -50 -20 0 -17 7 -20 50 -20 l50 0 0 -50 c0 -43 3 -50 20 -50 17 0 20 7 20 50 l0 50 50 0 c43 0 50 3 50 20 0 17 -7 20 -50 20 l-50 0 0 50 c0 43 -3 50 -20 50 -17 0 -20 -7 -20 -50z" />
+                        </g>
+                    </svg>
+                </span>
+                <span class="link-title">Зарегистрироваться</span>
+            </a>
+        }
+    </div>
+    <div class="toggle-container">
+        <input type="checkbox" class="toggle-input" @onchange="ToggleTheme" checked="@(IsDarkTheme ? "checked" : null)" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 292 142" class="toggle">
+            <path d="M71 142C31.7878 142 0 110.212 0 71C0 31.7878 31.7878 0 71 0C110.212 0 119 30 146 30C173 30 182 0 221 0C260 0 292 31.7878 292 71C292 110.212 260.212 142 221 142C181.788 142 173 112 146 112C119 112 110.212 142 71 142Z" class="toggle-background"></path>
+            <rect rx="6" height="64" width="12" y="39" x="64" class="toggle-icon on"></rect>
+            <path d="M221 91C232.046 91 241 82.0457 241 71C241 59.9543 232.046 51 221 51C209.954 51 201 59.9543 201 71C201 82.0457 209.954 91 221 91ZM221 103C238.673 103 253 88.6731 253 71C253 53.3269 238.673 39 221 39C203.327 39 189 53.3269 189 71C189 88.6731 203.327 103 221 103Z" fill-rule="evenodd" class="toggle-icon off"></path>
+            <g filter="url('#goo')">
+                <rect fill="#fff" rx="29" height="58" width="116" y="42" x="13" class="toggle-circle-center"></rect>
+                <rect fill="#fff" rx="58" height="114" width="114" y="14" x="14" class="toggle-circle left"></rect>
+                <rect fill="#fff" rx="58" height="114" width="114" y="14" x="164" class="toggle-circle right"></rect>
+            </g>
+            <filter id="goo">
+                <feGaussianBlur stdDeviation="10" result="blur" in="SourceGraphic"></feGaussianBlur>
+                <feColorMatrix result="goo" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" mode="matrix" in="blur"></feColorMatrix>
+            </filter>
+        </svg>
+    </div>
+</nav>
+
+@code {
+    private bool IsAuthenticated;
+    private bool IsDarkTheme = true;
+    private bool isFirstRender = true;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+    [Inject]
+    private AuthService AuthService { get; set; }
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        await UpdateAuthState();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            IsDarkTheme = await JSRuntime.InvokeAsync<string>("themeManager.getCurrentTheme") == "dark";
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateAuthState()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        IsAuthenticated = authState.User.Identity.IsAuthenticated;
+        StateHasChanged();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        await UpdateAuthState();
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task ToggleTheme(ChangeEventArgs e)
+    {
+        var newTheme = await JSRuntime.InvokeAsync<string>("themeManager.toggleTheme");
+        IsDarkTheme = newTheme == "dark";
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
+}

@@ -1,0 +1,550 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using CryptoMonitor.Models
+@using CryptoMonitor.Data
+@using CryptoMonitor.Services
+@using Blazorise
+@layout EmptyLayout
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+
+<style>
+
+    .login-bg {
+        min-height: 100vh;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background: var(--bg-dark);
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        position: relative;
+        width: 850px;
+        height: 550px;
+        background: var(--bg-light);
+        border-radius: 30px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, .2);
+        overflow: hidden;
+    }
+
+        .container h1 {
+            font-size: 36px;
+            margin: -10px 0;
+        }
+
+        .container p {
+            font-size: 14.5px;
+            margin: 15px 0;
+        }
+
+    form {
+        width: 100%;
+    }
+
+    .form-box {
+        position: absolute;
+        right: 0;
+        width: 50%;
+        height: 100%;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        color: var(--text-main);
+        text-align: center;
+        padding: 40px;
+        z-index: 1;
+        transition: .6s ease-in-out 1.2s, visibility 0s 1s;
+    }
+
+    .container.active .form-box {
+        right: 50%;
+    }
+
+    .form-box.register {
+        visibility: hidden;
+    }
+
+    .container.active .form-box.register {
+        visibility: visible;
+    }
+
+    .social-icons {
+        display: flex;
+        justify-content: center;
+    }
+
+        .social-icons a {
+            display: inline-flex;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 24px;
+            color: #333;
+            margin: 0 8px;
+        }
+
+    .toggle-box {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+        .toggle-box::before {
+            content: '';
+            position: absolute;
+            left: -250%;
+            width: 300%;
+            height: 100%;
+            background: var(--accent-3);
+            border-radius: 150px;
+            z-index: 2;
+            transition: 1.8s ease-in-out;
+        }
+
+    .container.active .toggle-box::before {
+        left: 50%;
+    }
+
+    .toggle-panel {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2;
+        transition: .6s ease-in-out;
+    }
+
+        .toggle-panel.toggle-left {
+            left: 0;
+            transition-delay: 1.2s;
+        }
+
+    .container.active .toggle-panel.toggle-left {
+        left: -50%;
+        transition-delay: .6s;
+    }
+
+    .toggle-panel.toggle-right {
+        right: -50%;
+        transition-delay: .6s;
+    }
+
+    .container.active .toggle-panel.toggle-right {
+        right: 0;
+        transition-delay: 1.2s;
+    }
+
+    .toggle-panel p {
+        margin-bottom: 20px;
+    }
+
+    .toggle-panel .btn {
+        width: 160px;
+        height: 46px;
+        background: transparent;
+        border: 2px solid #fff;
+        box-shadow: none;
+    }
+
+    @@media screen and (max-width: 650px) {
+        .container
+
+    {
+        height: calc(100vh - 40px);
+    }
+
+    .form-box {
+        bottom: 0;
+        width: 100%;
+        height: 70%;
+    }
+
+    .container.active .form-box {
+        right: 0;
+        bottom: 30%;
+    }
+
+    .toggle-box::before {
+        left: 0;
+        top: -270%;
+        width: 100%;
+        height: 300%;
+        border-radius: 20vw;
+    }
+
+    .container.active .toggle-box::before {
+        left: 0;
+        top: 70%;
+    }
+
+    .container.active .toggle-panel.toggle-left {
+        left: 0;
+        top: -30%;
+    }
+
+    .toggle-panel {
+        width: 100%;
+        height: 30%;
+    }
+
+        .toggle-panel.toggle-left {
+            top: 0;
+        }
+
+        .toggle-panel.toggle-right {
+            right: 0;
+            bottom: -30%;
+        }
+
+    .container.active .toggle-panel.toggle-right {
+        bottom: 0;
+    }
+
+    }
+
+    @@media screen and (max-width: 400px) {
+        .form-box
+
+    {
+        padding: 20px;
+    }
+
+    .toggle-panel h1 {
+        font-size: 30px;
+    }
+
+    }
+
+    /* From Uiverse.io by AbanoubMagdy1 */
+    .wave-group {
+        position: relative;
+    }
+
+        .wave-group .input {
+            font-size: 16px;
+            padding: 10px 10px 10px 5px;
+            display: block;
+            width: 200px;
+            border: none;
+            border-bottom: 1px solid #515151;
+            background: transparent;
+        }
+
+            .wave-group .input:focus {
+                outline: none;
+            }
+
+        .wave-group .label {
+            color: #999;
+            font-size: 18px;
+            font-weight: normal;
+            position: absolute;
+            pointer-events: none;
+            left: 5px;
+            top: 10px;
+            display: flex;
+        }
+
+        .wave-group .label-char {
+            transition: 0.2s ease all;
+            transition-delay: calc(var(--index) * .05s);
+        }
+
+        .wave-group .input:focus ~ label .label-char,
+        .wave-group .input:valid ~ label .label-char {
+            transform: translateY(-20px);
+            font-size: 14px;
+            color: var(--accent-1);
+        }
+
+        .wave-group .bar {
+            position: relative;
+            display: block;
+            width: 200px;
+        }
+
+            .wave-group .bar:before, .wave-group .bar:after {
+                content: '';
+                height: 2px;
+                width: 0;
+                bottom: 1px;
+                position: absolute;
+                background: var(--accent-1);
+                transition: 0.2s ease all;
+                -moz-transition: 0.2s ease all;
+                -webkit-transition: 0.2s ease all;
+            }
+
+            .wave-group .bar:before {
+                left: 50%;
+            }
+
+            .wave-group .bar:after {
+                right: 50%;
+            }
+
+        .wave-group .input:focus ~ .bar:before,
+        .wave-group .input:focus ~ .bar:after {
+            width: 50%;
+        }
+
+    .validation-message {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .input-validation-error {
+        border-color: #dc3545;
+    }
+
+    .login-error-message {
+        color: #dc3545;
+        font-size: 15px;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+</style>
+
+@if (isLoadingLogin)
+{
+    <Loading />
+}
+else
+{
+    <div class="login-bg">
+        <div class="flex items-center" style="margin-bottom: 40px">
+            <a href="/" style="display: flex; align-items: center; text-decoration: none;" class="logo-link">
+                <img src="images/logo.png"
+                     alt="User Avatar"
+                     class="w-40 h-41 logo" />
+                <span class="text-logo" style="font-size: 50px;">CryptoMonitor</span>
+            </a>
+        </div>
+        <div class="login-page">
+            <div class="container @(IsRegister ? "active" : "")">
+                <div class="form-box login">
+                    <EditForm EditContext="@LoginEditContext" OnValidSubmit="HandleLogin">
+                        <DataAnnotationsValidator />
+                        <Blazorise.ValidationSummary />
+                        
+                        <h1 style="color: var(--accent-1)">Вход</h1>
+                        <div class="wave-group" style="margin-top: 20px; margin-left: 60px">
+                            <input required="" type="text" class="input @(LoginEditContext.GetValidationMessages(() => LoginModel.Email).Any() ? "input-validation-error" : "")" @bind="LoginModel.Email">
+                            <span class="bar"></span>
+                            <label class="label">
+                                <span class="label-char" style="--index: 0">E</span>
+                                <span class="label-char" style="--index: 1">m</span>
+                                <span class="label-char" style="--index: 2">a</span>
+                                <span class="label-char" style="--index: 3">i</span>
+                                <span class="label-char" style="--index: 4">l</span>
+                            </label>
+                            <ValidationMessage For="@(() => LoginModel.Email)" class="validation-message" />
+                        </div>
+                        <div class="wave-group" style="margin-top: 20px; margin-left: 60px">
+                            <input required="" type="password" class="input @(LoginEditContext.GetValidationMessages(() => LoginModel.Password).Any() ? "input-validation-error" : "")" @bind="LoginModel.Password">
+                            <span class="bar"></span>
+                            <label class="label">
+                                <span class="label-char" style="--index: 0">P</span>
+                                <span class="label-char" style="--index: 1">a</span>
+                                <span class="label-char" style="--index: 2">s</span>
+                                <span class="label-char" style="--index: 3">s</span>
+                                <span class="label-char" style="--index: 4">w</span>
+                                <span class="label-char" style="--index: 5">o</span>
+                                <span class="label-char" style="--index: 6">r</span>
+                                <span class="label-char" style="--index: 7">d</span>
+                            </label>
+                            <ValidationMessage For="@(() => LoginModel.Password)" class="validation-message" />
+                        </div>
+                        <button class="btn-anim" style="margin-top: 20px">
+                            <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            Войти
+                        </button>
+                        @if (LoginFailed)
+                        {
+                            <div class="login-error-message">Такого емаил или пароля не существует</div>
+                        }
+                        <p>or login with social platforms</p>
+                        <div class="social-icons">
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-google' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-facebook' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-github' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-linkedin' style="color: var(--text-main) !important"></i></a>
+                        </div>
+                    </EditForm>
+                </div>
+
+                <div class="form-box register">
+                    <EditForm EditContext="@RegisterEditContext" OnValidSubmit="HandleRegister">
+                        <DataAnnotationsValidator />
+                        <Blazorise.ValidationSummary />
+
+                        <h1 style="color: var(--accent-1)">Регистрация</h1>
+                        <div class="wave-group" style="margin-top: 20px; margin-left: 60px;">
+                            <input required type="text" class="input @(RegisterEditContext.GetValidationMessages(() => RegisterModel.Email).Any() || !string.IsNullOrEmpty(RegisterEmailError) ? "input-validation-error" : "")" @bind="RegisterModel.Email">
+                            <span class="bar"></span>
+                            <label class="label">
+                                <span class="label-char" style="--index: 0">E</span>
+                                <span class="label-char" style="--index: 1">m</span>
+                                <span class="label-char" style="--index: 2">a</span>
+                                <span class="label-char" style="--index: 3">i</span>
+                                <span class="label-char" style="--index: 4">l</span>
+                            </label>
+                            <ValidationMessage For="@(() => RegisterModel.Email)" class="validation-message" />
+                            @if (!string.IsNullOrEmpty(RegisterEmailError))
+                            {
+                                <div class="validation-message">@RegisterEmailError</div>
+                            }
+                        </div>
+                        <div class="wave-group" style="margin-top: 20px; margin-left: 60px;">
+                            <input required type="password" class="input @(RegisterEditContext.GetValidationMessages(() => RegisterModel.Password).Any() ? "input-validation-error" : "")" @bind="RegisterModel.Password">
+                            <span class="bar"></span>
+                            <label class="label">
+                                <span class="label-char" style="--index: 0">P</span>
+                                <span class="label-char" style="--index: 1">a</span>
+                                <span class="label-char" style="--index: 2">s</span>
+                                <span class="label-char" style="--index: 3">s</span>
+                                <span class="label-char" style="--index: 4">w</span>
+                                <span class="label-char" style="--index: 5">o</span>
+                                <span class="label-char" style="--index: 6">r</span>
+                                <span class="label-char" style="--index: 7">d</span>
+                            </label>
+                            <ValidationMessage For="@(() => RegisterModel.Password)" class="validation-message" />
+                        </div>
+                        <div class="wave-group" style="margin-top: 20px; margin-left: 60px;">
+                            <input required type="password" class="input @(RegisterEditContext.GetValidationMessages(() => RegisterModel.ConfirmPassword).Any() ? "input-validation-error" : "")" @bind="RegisterModel.ConfirmPassword">
+                            <span class="bar"></span>
+                            <label class="label">
+                                <span class="label-char" style="--index: 0">C</span>
+                                <span class="label-char" style="--index: 1">o</span>
+                                <span class="label-char" style="--index: 2">n</span>
+                                <span class="label-char" style="--index: 3">f</span>
+                                <span class="label-char" style="--index: 4">i</span>
+                                <span class="label-char" style="--index: 5">r</span>
+                                <span class="label-char" style="--index: 6">m</span>
+                            </label>
+                            <ValidationMessage For="@(() => RegisterModel.ConfirmPassword)" class="validation-message" />
+                        </div>
+                        <button class="btn-anim" style="margin-top: 20px; width: 200px">
+                            <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            Зарегистрироваться
+                        </button>
+                        <p>or login with social platforms</p>
+                        <div class="social-icons">
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-google' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-facebook' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-github' style="color: var(--text-main) !important"></i></a>
+                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-linkedin' style="color: var(--text-main) !important"></i></a>
+                        </div>
+                    </EditForm>
+                </div>
+
+                <div class="toggle-box">
+                    <div class="toggle-panel toggle-left">
+                        <h1>Добро пожаловать!</h1>
+                        <p>Все еще нет аккаунта?</p>
+                        <button class="btn-anim" @onclick="ToggleRegister">
+                            <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            Регистрация
+                        </button>
+                    </div>  
+
+                    <div class="toggle-panel toggle-right">
+                        <h1>Добро пожаловать!</h1>
+                        <p>Уже есть аккаунт?</p>
+                        <button class="btn-anim" @onclick="ToggleLogin">
+                            <svg><rect x="0" y="0" width="100%" height="100%"></rect></svg>
+                            Войти
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool IsRegister = false;
+    private LoginModel LoginModel = new LoginModel();
+    private RegisterModel RegisterModel = new RegisterModel();
+    private EditContext LoginEditContext;
+    private EditContext RegisterEditContext;
+    private bool LoginFailed = false;
+    private string RegisterEmailError = null;
+    private bool isLoadingLogin = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var minDisplay = TimeSpan.FromMilliseconds(1000);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        LoginEditContext = new EditContext(LoginModel);
+        RegisterEditContext = new EditContext(RegisterModel);
+
+        var remaining = minDisplay - sw.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining);
+
+        isLoadingLogin = false;
+    }
+
+    private void ToggleRegister()
+    {
+        IsRegister = true;
+        LoginFailed = false;
+        RegisterEmailError = null;
+    }
+
+    private void ToggleLogin()
+    {
+        IsRegister = false;
+        LoginFailed = false;
+        RegisterEmailError = null;
+    }
+
+    private async Task HandleLogin()
+    {
+        LoginFailed = false;
+        if (await AuthService.LoginAsync(LoginModel))
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            LoginFailed = true;
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        RegisterEmailError = null;
+        if (await AuthService.RegisterAsync(RegisterModel))
+        {
+            IsRegister = false;
+            LoginModel.Email = RegisterModel.Email;
+            LoginModel.Password = RegisterModel.Password;
+        }
+        else
+        {
+            RegisterEmailError = "Пользователь с таким email уже зарегистрирован";
+        }
+    }
+} 
