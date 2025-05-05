@@ -24,9 +24,9 @@
 
 /* Светлая тема */
 body.light-theme {
-    --bg-dark: #F5F7FA;
+    --bg-dark: #F0F2F5;
     --bg-light: #FFFFFF;
-    --accent-1: #00FFA3;
+    --accent-1: #01796F;
     --accent-2: #FF0090;
     --accent-3: #00A66B;
     --text-main: #2D3748;
@@ -504,7 +504,6 @@ table {
 }
 .hero-title-accent {
     color: var(--accent-1);
-    text-shadow: 0 2px 16px var(--bg-dark), 0 1px 0 var(--accent-1);
 }
 .hero-subtitle {
     font-size: 1.25rem;
@@ -883,6 +882,7 @@ table {
     left: 18px;
     flex-shrink: 0;
     position: absolute;
+    color: var(--accent-1);
 }
 
 .link-icon svg {

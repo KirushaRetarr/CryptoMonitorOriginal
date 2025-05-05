@@ -8,7 +8,6 @@ namespace CryptoMonitor.Models
     {
         public int LogId { get; set; }
 
-        // Было: public int SourceId { get; set; }
         // Стало:
         [ForeignKey(nameof(ApiSource))]
         public int ApiSourceId { get; set; }

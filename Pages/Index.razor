@@ -164,24 +164,22 @@ else
             </section>
         </Animate>
 
-               <!-- Блок: ТОП-5 Криптовалют -->
-        <Animate Animation="Animations.SlideUp" Duration="TimeSpan.FromSeconds(0.5)" Delay="TimeSpan.FromSeconds(0.3)">
-            <section class="top-cryptos">
-                <div class="crypto-cards">
-                    @foreach (var crypto in cryptoCards)
-                    {
-                        <div class="card" @onclick="() => ShowCryptoDetails(crypto.AssetId.ToString())">
-                            <img class="img" src="@crypto.ImageUrl" alt="@crypto.Name" />
-                            <div class="textBox">
-                                <p class="head">@crypto.Name</p>
-                                <p class="discription">Cryptocurrency</p>
-                                <p class="price">@((crypto.LatestPrice ?? 0).ToString("N2")) $</p>
-                            </div>
+        <!-- Блок: ТОП-5 Криптовалют -->
+        <section class="top-cryptos">
+            <div class="crypto-cards">
+                @foreach (var crypto in cryptoCards)
+                {
+                    <div class="card" @onclick="() => ShowCryptoDetails(crypto.AssetId.ToString())">
+                        <img class="img" src="@crypto.ImageUrl" alt="@crypto.Name" />
+                        <div class="textBox">
+                            <p class="head">@crypto.Name</p>
+                            <p class="discription">Cryptocurrency</p>
+                            <p class="price">@((crypto.LatestPrice ?? 0).ToString("N2")) $</p>
                         </div>
-                    }
-                </div>
-            </section>
-        </Animate>
+                    </div>
+                }
+            </div>
+        </section>
 
         <!-- Блок: Линейный график -->
         @if (selectedCrypto != null)

@@ -89,12 +89,16 @@
         .social-icons a {
             display: inline-flex;
             padding: 10px;
-            border: 2px solid #ccc;
+            border: 2px solid var(--accent-1);
             border-radius: 8px;
             font-size: 24px;
-            color: #333;
+            color: var(--text-main);
             margin: 0 8px;
         }
+
+            .social-icons a:hover{
+                border: 2px solid var(--accent-2);
+            }
 
     .toggle-box {
         position: absolute;
@@ -332,11 +336,11 @@ else
 {
     <div class="login-bg">
         <div class="flex items-center" style="margin-bottom: 40px">
-            <a href="/" style="display: flex; align-items: center; text-decoration: none;" class="logo-link">
+            <a href="/" style="display: flex; align-items: center; text-decoration: none; gap: 10px" class="logo-link">
                 <img src="images/logo.png"
                      alt="User Avatar"
-                     class="w-40 h-41 logo" />
-                <span class="text-logo" style="font-size: 50px;">CryptoMonitor</span>
+                     class="w-10 h-11 logo" />
+                <span class="text-logo" style="font-size: 20px;">CryptoMonitor</span>
             </a>
         </div>
         <div class="login-page">
@@ -383,11 +387,11 @@ else
                             <div class="login-error-message">Такого емаил или пароля не существует</div>
                         }
                         <p>or login with social platforms</p>
-                        <div class="social-icons">
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-google' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-facebook' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-github' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-linkedin' style="color: var(--text-main) !important"></i></a>
+                       <div class="social-icons">
+                            <a href="https://accounts.google.com/v3/signin/identifier?dsh=S1812573153%3A1655944654029516&flowEntry=ServiceLogin&flowName=WebLiteSignIn&ifkv=AX3vH39E0iYVTmn-NoMNM_C35EPrno8LWsRx2Qhr0HApkVLZ-Zc_Vql8ouaSQOiXzEmthrpOPAV5" ><i class='bx bxl-google' ></i></a>
+                            <a href="https://www.facebook.com/login/" ><i class='bx bxl-facebook' ></i></a>
+                            <a href="https://github.com/login" ><i class='bx bxl-github' ></i></a>
+                            <a href="https://www.linkedin.com/login/ru" ><i class='bx bxl-linkedin'></i></a>
                         </div>
                     </EditForm>
                 </div>
@@ -449,10 +453,10 @@ else
                         </button>
                         <p>or login with social platforms</p>
                         <div class="social-icons">
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-google' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-facebook' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-github' style="color: var(--text-main) !important"></i></a>
-                            <a href="#" style="border: 2px solid var(--accent-1) !important"><i class='bx bxl-linkedin' style="color: var(--text-main) !important"></i></a>
+                            <a href="https://accounts.google.com/v3/signin/identifier?dsh=S1812573153%3A1655944654029516&flowEntry=ServiceLogin&flowName=WebLiteSignIn&ifkv=AX3vH39E0iYVTmn-NoMNM_C35EPrno8LWsRx2Qhr0HApkVLZ-Zc_Vql8ouaSQOiXzEmthrpOPAV5" ><i class='bx bxl-google' ></i></a>
+                            <a href="https://www.facebook.com/login/" ><i class='bx bxl-facebook' ></i></a>
+                            <a href="https://github.com/login" ><i class='bx bxl-github' ></i></a>
+                            <a href="https://www.linkedin.com/login/ru" ><i class='bx bxl-linkedin'></i></a>
                         </div>
                     </EditForm>
                 </div>

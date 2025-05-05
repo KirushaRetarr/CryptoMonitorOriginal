@@ -94,7 +94,7 @@ namespace CryptoMonitor.Services
                     await db.SaveChangesAsync(stoppingToken);
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(3600), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(1800), stoppingToken);
             }
         }
     }
