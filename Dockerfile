@@ -4,8 +4,8 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /app
 
 # Copy csproj and restore as distinct layers
-COPY *.sln .
-COPY CryptoMonitorOriginal/*.csproj ./CryptoMonitorOriginal/
+COPY *.sln . 
+COPY *.csproj ./
 RUN dotnet restore
 
 # Copy the rest of the files and build
