@@ -10,11 +10,10 @@ RUN dotnet restore
 
 # Copy the rest of the files and build
 COPY . .
-WORKDIR /app/CryptoMonitorOriginal
 RUN dotnet publish -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/CryptoMonitorOriginal/out ./
-ENTRYPOINT ["dotnet", "CryptoMonitorOriginal.dll"]
+COPY --from=build /app/out ./
+ENTRYPOINT ["dotnet", "CryptoMonitor.dll"]
