@@ -18,23 +18,28 @@
         align-items: center;
         background: var(--bg-dark);
         padding: 2rem;
+        perspective: 1000px;
     }
 
     .profile-card {
         background: var(--bg-light);
         border-radius: 30px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, .2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .3);
         width: 100%;
         max-width: 800px;
-        padding: 2rem;
-        animation: fadeIn 0.5s ease-in-out;
+        padding: 2.5rem;
+        animation: cardEnter 0.8s ease-out;
+        transform-style: preserve-3d;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .profile-header {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
+        position: relative;
     }
 
     .avatar-container {
@@ -42,6 +47,13 @@
         width: 150px;
         height: 150px;
         margin-bottom: 1.5rem;
+        border-radius: 50%;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .avatar-container:hover {
+        transform: scale(1.1) rotate(5deg);
     }
 
     .avatar {
@@ -50,23 +62,20 @@
         border-radius: 50%;
         object-fit: cover;
         border: 4px solid var(--accent-3);
-        transition: transform 0.3s ease;
+        transition: all 0.3s ease;
     }
-
-        .avatar:hover {
-            transform: scale(1.05);
-        }
 
     .avatar-placeholder {
         width: 100%;
         height: 100%;
         border-radius: 50%;
-        background: var(--accent-3);
+        background: linear-gradient(135deg, var(--accent-3), var(--accent-1));
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 3rem;
         color: var(--text-main);
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .profile-info {
@@ -76,29 +85,61 @@
     }
 
     .info-item {
-        margin-bottom: 1.5rem;
-        animation: slideIn 0.5s ease-in-out;
+        margin-bottom: 1.8rem;
+        animation: slideIn 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateX(-20px);
     }
+
+    .info-item:nth-child(1) { animation-delay: 0.2s; }
+    .info-item:nth-child(2) { animation-delay: 0.4s; }
+    .info-item:nth-child(3) { animation-delay: 0.6s; }
 
     .info-label {
         font-size: 0.9rem;
         color: var(--text-secondary);
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-label i {
+        color: var(--accent-1);
+        font-size: 1.1rem;
     }
 
     .info-value {
         font-size: 1.2rem;
         color: var(--text-main);
-        padding: 0.8rem;
+        padding: 1rem;
         background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        border: 1px solid var(--text-main);
-        transition: background 0.3s ease;
+        border-radius: 12px;
+        border: 1px solid var(--accent-3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
 
-        .info-value:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
+    .info-value::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+        );
+        transition: 0.5s;
+    }
+
+    .info-value:hover::before {
+        left: 100%;
+    }
 
     .edit-button {
         margin-top: 2rem;
@@ -116,27 +157,32 @@
             background: var(--accent-2);
         }
 
+    @@keyframes cardEnter {
+        from {
+            opacity: 0;
+            transform: translateY(30px) rotateX(-10deg);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) rotateX(0);
+        }
+    }
+
+    @@keyframes slideIn {
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
     @@keyframes fadeIn {
         from {
             opacity: 0;
             transform: translateY(20px);
         }
-
         to {
             opacity: 1;
             transform: translateY(0);
-        }
-    }
-
-    @@keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateX(0);
         }
     }
 
@@ -152,75 +198,102 @@
     }
 
     .password-form {
-        margin-top: 2rem;
-        padding: 1.5rem;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 15px;
-        animation: fadeIn 0.5s ease-in-out;
-        box-shadow: 0 8px 8px var(--bg-dark, #00FFA3);
-        border: 1px solid var(--text-main)
+        margin-top: 3rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 20px;
+        animation: fadeIn 0.5s ease-out forwards;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--accent-3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .password-form::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
+        margin-bottom: 2rem;
         position: relative;
-        color: var(--text-main);
-    }
-
-    .form-group .label {
-        font-size: 15px;
-        padding-left: 10px;
-        position: absolute;
-        top: 13px;
-        left: 0;
-        transition: 0.3s;
-        pointer-events: none;
-        color: var(--text-secondary);
-        background: transparent;
     }
 
     .form-group .input {
         width: 100%;
-        height: 45px;
-        border: none;
-        outline: none;
-        padding: 0px 7px;
-        border-radius: 6px;
+        padding: 1rem 1rem 1rem 3rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--accent-3);
+        border-radius: 12px;
         color: var(--text-main);
-        font-size: 15px;
-        background-color: transparent;
-        box-shadow: 0 2px 8px var(--accent-1, #00FFA3);
-        transition: box-shadow 0.3s, color 0.3s;
+        font-size: 1rem;
+        transition: all 0.3s ease;
     }
 
     .form-group .input:focus {
-        border: 2px solid var(--accent-1, #00FFA3);
-        color: var(--text-main);
-        box-shadow: 0 4px 16px var(--accent-1, #00FFA3);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--accent-1);
+        box-shadow: 0 0 15px rgba(0, 255, 163, 0.2);
     }
 
-    .form-group.filled .label,
-    .form-group.focused .label {
-        transition: 0.3s;
-        padding-left: 2px;
-        transform: translateY(-35px);
-        color: var(--accent-1, #00FFA3);
-        font-size: 13px;
+    .form-group i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--accent-1);
+        font-size: 1.2rem;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-group .label {
+        position: absolute;
+        left: 3rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        pointer-events: none;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .form-group.focused .label,
+    .form-group.filled .label {
+        top: 0;
+        left: 1rem;
+        transform: translateY(-50%) scale(0.8);
+        background: var(--bg-light);
+        padding: 0 0.5rem;
+        color: var(--accent-1);
+    }
+
+    .form-group.focused i,
+    .form-group.filled i {
+        color: var(--accent-1);
+        transform: translateY(-50%) scale(1.1);
     }
 
     .error-message {
-        color: #ff4444;
+        color: var(--accent-2);
         font-size: 0.9rem;
         margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .success-message {
-        color: #00C851;
+        color: var(--accent-1);
         font-size: 0.9rem;
         margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .change-password-button {
@@ -344,29 +417,41 @@ else
             </div>
 
             <div class="profile-info">
-                <div class="info-item" style="animation-delay: 0.1s">
-                    <div class="info-label">Email</div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class='bx bx-envelope'></i>
+                        Email
+                    </div>
                     <div class="info-value">@userEmail</div>
                 </div>
 
-                <div class="info-item" style="animation-delay: 0.2s">
-                    <div class="info-label">Account Type</div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class='bx bx-crown'></i>
+                        Account Type
+                    </div>
                     <div class="info-value">@(isPremium ? "Premium" : "Standard")</div>
                 </div>
 
-                <div class="info-item" style="animation-delay: 0.3s">
-                    <div class="info-label">Member Since</div>
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class='bx bx-calendar'></i>
+                        Member Since
+                    </div>
                     <div class="info-value">@memberSince</div>
                 </div>
 
                 @if (isAdmin)
                 {
-                    <div class="info-item" style="animation-delay: 0.3s">
-                        <div class="info-label">Role</div>
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class='bx bx-shield'></i>
+                            Role
+                        </div>
                         <div class="info-value">@userRole</div>
                     </div>
 
-                    <div class="info-item" style="animation-delay: 0.4s">
+                    <div class="info-item">
                         <a href="/admin/dashboard" class="btn-anim" style="width: 200px; display: flex; align-items: center; justify-content: center; position: relative;">
                             <svg style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0;"><rect x="0" y="0" width="100%" height="100%"></rect></svg>
                             <span style="position: relative; z-index: 1; width: 100%; text-align: center;">Админ-панель</span>
@@ -378,21 +463,24 @@ else
                     <h3 style="margin-bottom: 30px; margin-left: 4px">Change Password</h3>
                     <EditForm Model="@changePasswordModel" OnValidSubmit="HandleValidSubmit">
                         <DataAnnotationsValidator />
-                        <div class="form-group @(isCurrentFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.CurrentPassword) ? "filled" : null )">
+                        <div class="form-group @(isCurrentFocused ? "focused" : null) @(!string.IsNullOrEmpty(changePasswordModel.CurrentPassword) ? "filled" : null)">
+                            <i class='bx bx-lock-alt'></i>
                             <InputText @bind-Value="changePasswordModel.CurrentPassword" class="input" type="password" required
                                 @onfocus="() => isCurrentFocused = true" @onblur="() => isCurrentFocused = false" />
                             <label class="label">Текущий пароль</label>
                             <ValidationMessage For="@(() => changePasswordModel.CurrentPassword)" />
                         </div>
 
-                        <div class="form-group @(isNewFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.NewPassword) ? "filled" : null )">
+                        <div class="form-group @(isNewFocused ? "focused" : null) @(!string.IsNullOrEmpty(changePasswordModel.NewPassword) ? "filled" : null)">
+                            <i class='bx bx-lock-open-alt'></i>
                             <InputText @bind-Value="changePasswordModel.NewPassword" class="input" type="password" required
                                 @onfocus="() => isNewFocused = true" @onblur="() => isNewFocused = false" />
                             <label class="label">Новый пароль</label>
                             <ValidationMessage For="@(() => changePasswordModel.NewPassword)" />
                         </div>
 
-                        <div class="form-group @(isConfirmFocused ? "focused" : null) @( !string.IsNullOrEmpty(changePasswordModel.ConfirmPassword) ? "filled" : null )">
+                        <div class="form-group @(isConfirmFocused ? "focused" : null) @(!string.IsNullOrEmpty(changePasswordModel.ConfirmPassword) ? "filled" : null)">
+                            <i class='bx bx-check-shield'></i>
                             <InputText @bind-Value="changePasswordModel.ConfirmPassword" class="input" type="password" required
                                 @onfocus="() => isConfirmFocused = true" @onblur="() => isConfirmFocused = false" />
                             <label class="label">Подтвердите пароль</label>
@@ -401,12 +489,18 @@ else
 
                         @if (!string.IsNullOrEmpty(errorMessage))
                         {
-                            <div class="error-message">@errorMessage</div>
+                            <div class="error-message">
+                                <i class='bx bx-error-circle'></i>
+                                @errorMessage
+                            </div>
                         }
 
                         @if (!string.IsNullOrEmpty(successMessage))
                         {
-                            <div class="success-message">@successMessage</div>
+                            <div class="success-message">
+                                <i class='bx bx-check-circle'></i>
+                                @successMessage
+                            </div>
                         }
 
                         <button type="submit" class="btn-anim" style="width: 200px" disabled="@isLoading">

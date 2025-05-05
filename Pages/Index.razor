@@ -14,6 +14,10 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 
+<!-- Выносим кнопку на самый верхний уровень -->
+<div class="scroll-to-top" @onclick="ScrollToTop" id="scrollToTop">
+    <i class='bx bx-up-arrow-alt'></i>
+</div>
 
 <style>
     .compare-cards-custom {
@@ -103,6 +107,73 @@
         align-items: center;
         justify-content: center;
         box-shadow: rgba(100, 100, 111, 0.12) 0px 10px 10px -10px;
+    }
+
+    .scroll-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: var(--bg-light);
+        border: 2px solid var(--accent-1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px) scale(0.8);
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 999;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .scroll-to-top.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .scroll-to-top::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--accent-1);
+        opacity: 0;
+        transition: all 0.4s ease;
+    }
+
+    .scroll-to-top:hover {
+        transform: translateY(-5px) scale(1.1);
+    }
+
+    .scroll-to-top:hover::before {
+        opacity: 1;
+    }
+
+    .scroll-to-top i {
+        color: var(--accent-1);
+        font-size: 1.5rem;
+        transition: all 0.4s ease;
+        position: relative;
+        transform: translateY(2px);
+    }
+
+    .scroll-to-top:hover i {
+        color: var(--bg-light);
+        animation: bounceArrow 0.6s ease infinite alternate;
+    }
+
+    @@keyframes bounceArrow {
+        from {
+            transform: translateY(4px);
+        }
+        to {
+            transform: translateY(-2px);
+        }
     }
 </style>
 
@@ -195,7 +266,6 @@ else
                 </Animate>
             </section>
         }
-
     </main>
 }
 
@@ -206,6 +276,7 @@ else
     private IJSObjectReference chartModule;
     private bool isChartInitialized = false;
     private List<ComparisonModel> comparisonData = new();
+    private IJSObjectReference scrollModule;
 
     public class ComparisonModel
     {
@@ -272,6 +343,11 @@ else
         if (firstRender)
         {
             chartModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chart.js");
+            scrollModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/scroll.js");
+            await scrollModule.InvokeVoidAsync("initScrollToTop");
+            
+            // Добавляем вызов для отладки
+            await JSRuntime.InvokeVoidAsync("console.log", "Scroll module initialized");
         }
     }
 
@@ -316,5 +392,22 @@ else
             NavigationManager.NavigateTo("/assets");
         else
             NavigationManager.NavigateTo("/login");
+    }
+
+    private async Task ScrollToTop()
+    {
+        await scrollModule.InvokeVoidAsync("scrollToTop");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (chartModule is not null)
+        {
+            await chartModule.DisposeAsync();
+        }
+        if (scrollModule is not null)
+        {
+            await scrollModule.DisposeAsync();
+        }
     }
 }
